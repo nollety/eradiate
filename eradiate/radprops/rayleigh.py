@@ -9,11 +9,28 @@ from .._units import unit_registry as ureg
 # Physical constants
 #: Loschmidt constant [km^-3].
 _LOSCHMIDT = ureg.Quantity(
-    *physical_constants["Loschmidt constant (273.15 K, 101.325 kPa)"][:2]).to(
-    "km^-3")
+    *physical_constants["Loschmidt constant (273.15 K, 101.325 kPa)"][:2]
+).to("km^-3")
 
 # Air number density at 101325 Pa and 288.15 K
 _STANDARD_AIR_NUMBER_DENSITY = _LOSCHMIDT * (273.15 / 288.15)
+
+
+def compute_air_king_factor(wavelength=550.0):
+    pass
+
+
+def depolarisation_ratio(f):
+    """
+    Computes the depolarisation ratio corresponding to a given King factor.
+
+    Parameter ``f`` (float):
+        King factor.
+
+    Return → float:
+        Depolarisation ratio.
+    """
+    return (6 * f - 6) / (7 * f + 3)
 
 
 def kf(ratio=0.0279):
@@ -32,10 +49,12 @@ def kf(ratio=0.0279):
 
 
 @ureg.wraps(ret="km^-1", args=("nm", "km^-3", None, None), strict=False)
-def compute_sigma_s_air(wavelength=550.,
-                        number_density=_STANDARD_AIR_NUMBER_DENSITY.magnitude,
-                        king_factor=1.049,
-                        depolarisation_ratio=None):
+def compute_sigma_s_air(
+    wavelength=550.0,
+    number_density=_STANDARD_AIR_NUMBER_DENSITY.magnitude,
+    king_factor=1.049,
+    depolarisation_ratio=None,
+):
     r"""Compute the Rayleigh scattering coefficient of air.
 
     When default values are used, this provides the Rayleigh scattering
@@ -82,19 +101,23 @@ def compute_sigma_s_air(wavelength=550.,
         king_factor = kf(depolarisation_ratio)
 
     refractive_index = air_refractive_index(
-        wavelength=wavelength,
-        number_density=ureg.Quantity(number_density, "km^-3")
+        wavelength=wavelength, number_density=ureg.Quantity(number_density, "km^-3")
     )
 
-    return \
-        8. * np.power(np.pi, 3) / (3. * np.power((wavelength * 1e-12), 4)) / \
-        number_density * \
-        np.square(np.square(refractive_index) - 1.) * king_factor
+    return (
+        8.0
+        * np.power(np.pi, 3)
+        / (3.0 * np.power((wavelength * 1e-12), 4))
+        / number_density
+        * np.square(np.square(refractive_index) - 1.0)
+        * king_factor
+    )
 
 
 @ureg.wraps(ret=None, args=("nanometer", "m^-3"), strict=False)
-def air_refractive_index(wavelength=550.,
-                         number_density=_STANDARD_AIR_NUMBER_DENSITY.to("m^-3").magnitude):
+def air_refractive_index(
+    wavelength=550.0, number_density=_STANDARD_AIR_NUMBER_DENSITY.to("m^-3").magnitude
+):
     """Computes the air refractive index.
 
     The wavelength dependence of the refractive index is computed using equation
@@ -123,7 +146,7 @@ def air_refractive_index(wavelength=550.,
     sigma2 = np.square(sigma)
 
     # refractivity in parts per 1e8
-    x = (5791817. / (238.0183 - sigma2)) + 167909. / (57.362 - sigma2)
+    x = (5791817.0 / (238.0183 - sigma2)) + 167909.0 / (57.362 - sigma2)
 
     # number density scaling
     x *= number_density / _STANDARD_AIR_NUMBER_DENSITY.to("m^-3").magnitude
