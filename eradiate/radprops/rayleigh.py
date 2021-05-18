@@ -16,8 +16,19 @@ _LOSCHMIDT = ureg.Quantity(
 _STANDARD_AIR_NUMBER_DENSITY = _LOSCHMIDT * (273.15 / 288.15)
 
 
+# TODO: add air composition argument
+@ureg.wraps(ret="", args=("nm"), strict=False)
 def compute_air_king_factor(wavelength=550.0):
-    pass
+    """
+    Compute the air King factor.
+
+    Parameter ``wavelength`` (float):
+        Wavelength [nm].
+
+    Returns → float:
+        King correction factor [dimensionless].
+    """
+    return 1.049
 
 
 def depolarisation_ratio(f):
@@ -48,12 +59,10 @@ def kf(ratio=0.0279):
     return (6.0 + 3.0 * ratio) / (6.0 - 7.0 * ratio)
 
 
-@ureg.wraps(ret="km^-1", args=("nm", "km^-3", None, None), strict=False)
+@ureg.wraps(ret="km^-1", args=("nm", "km^-3"), strict=False)
 def compute_sigma_s_air(
     wavelength=550.0,
     number_density=_STANDARD_AIR_NUMBER_DENSITY.magnitude,
-    king_factor=1.049,
-    depolarisation_ratio=None,
 ):
     r"""Compute the Rayleigh scattering coefficient of air.
 
@@ -83,22 +92,10 @@ def compute_sigma_s_air(
     Parameter ``number_density`` (float):
         Number density of the scattering particles [km^-3].
 
-    Parameter ``king_factor`` (float):
-        King correction factor of the scattering particles [dimensionless].
-        Default value is the air effective King factor at 550 nm as given by
-        :cite:`Bates1984RayleighScatteringAir`. Overridden by a call to
-        :func:`kf` if ``depolarisation_ratio`` is set.
-
-    Parameter ``depolarisation_ratio`` (float or None):
-        Depolarisation ratio [dimensionless].
-        If this parameter is set, then its value is used to compute the value of
-        the corresponding King factor and supersedes ``king_factor``.
-
     Returns → float:
         Scattering coefficient [km^-1].
     """
-    if depolarisation_ratio is not None:
-        king_factor = kf(depolarisation_ratio)
+    king_factor = compute_air_king_factor(wavelength=wavelength)
 
     refractive_index = air_refractive_index(
         wavelength=wavelength, number_density=ureg.Quantity(number_density, "km^-3")
