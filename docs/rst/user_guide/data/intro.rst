@@ -18,6 +18,17 @@ library, whose data model is based on NetCDF. Xarray provides a comprehensive,
 robust and convenient interface to read, write, manipulate and visualise NetCDF
 data.
 
+Metadata conventions
+--------------------
+Data sets include metadata to describe what the data represents.
+As much as possible, we try to follow the 
+`NetCDF Climate and Forecast (CF) Metadata Conventions, version 1.8 
+<http://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html>`_.
+These metadata includes variable names and units but also information about
+where and how the data set was produced as well as links to published 
+or web-based references describing the data set of the method used to produce it.
+
+
 .. _sec-user_guide-manual_download:
 
 Adding manually downloaded data
